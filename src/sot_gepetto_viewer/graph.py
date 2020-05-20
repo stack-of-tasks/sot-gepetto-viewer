@@ -1,6 +1,8 @@
 from PythonQt.QGraphViz import QGVScene
+from PythonQt import QtCore
 from PythonQt import QtGui, Qt
 from command_execution import CommandExecution
+import time
 
 class Graph:
     def __init__(self, plugin):
@@ -20,7 +22,10 @@ class Graph:
                 }
 
         self.initCmd()
-        self.createAllGraph()
+	
+	self.LaunchRefresh()
+
+	#self.createAllGraph()
 
     def clear (self):
         if self.layoutShouldBeFreed:
@@ -56,12 +61,38 @@ class Graph:
         self.entityFilter = filter
         print self.entityFilter
 
+    def RefreshAuto(self):
+	print "test"
+	#QTimer.singleShot(1000, self.essaie)
+
+	#self.timer = QTimer()
+	#self.timer.connect(timer, SIGNAL(timeout()), this, SLOT(self.essaie))
+        #timer.start(1000)
+
+	#timer = QTimer()
+	#timer.timeout.connect(self.essaie)
+	#timer.start(1000)
+
+	
+
+    def StopRefresh(self):
+	self.timer.stop()
+	print "Auto Refresh Stopped"
+
+    def LaunchRefresh(self):
+	print "Auto Refreshed Launched"
+	self.timer = QtCore.QTimer()
+	self.timer.connect(self.timer, QtCore.SIGNAL("timeout()"), self.createAllGraph)
+        self.timer.start(1000)
+
     def createAllGraph (self):
-        entities = self.cmd.run ("dg.entity.Entity.entities.keys()")
+        str_entities = self.cmd.run ("dg.entity.Entity.entities.keys()")
         self.clear()
+	entities = eval(str_entities)
         for e in entities:
             if self.entityFilter is not None and not self.entityFilter.search(e):
                 continue
+	    print "e" + e
             etype = self.cmd.run("dg.entity.Entity.entities['"+e+"'].className")
             self.types[e] = etype
             if self.typeCallbacks.has_key(etype):
@@ -77,6 +108,9 @@ class Graph:
             else:
                 self._edgeEntitySignals (e)
         self.initLayout()
+
+	#while 1:
+	#	self.updateLayout()
 
     def createGraphBackwardFromEntity (self, e):
         ok = self.cmd.run("dg.entity.Entity.entities.has_key('"+e+"')")
@@ -150,8 +184,9 @@ class Graph:
         self.nodes[e] = self.graph.addNode (e)
 
     def _edgeEntitySignals(self, e):
-        signals = self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]")
-        for s in signals:
+        str_signals = self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]")
+	signals = eval(str_signals)        
+	for s in signals:
             ss = s.split("::")
             if len(ss) != 3:
                 print "Cannot handle", s

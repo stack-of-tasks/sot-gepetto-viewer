@@ -82,8 +82,9 @@ class CommandExecution(object):
                 print(response.standarderror[:-1])
             elif response.result != "None":
                 if not retValue: return
-                res = eval(response.result)
-                # print(response.result)
+		print(response.result)
+                res = response.result
+		#res = eval(response.result)
                 return res
         except rospy.ServiceException, e:
             print("Connection to remote server lost. Reconnecting...")

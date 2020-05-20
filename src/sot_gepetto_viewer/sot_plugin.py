@@ -26,6 +26,10 @@ class Plugin(QtGui.QDockWidget):
         toolBar.addAction(QtGui.QIcon.fromTheme("window-new"), "Create viewer", self.createRobotView)
         toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("view-filter"), "Set entity filter by name", self.entityFilterByName)
+	toolBar.addSeparator()
+        toolBar.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
+	toolBar.addSeparator()
+        toolBar.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
         main.addToolBar (toolBar)
 
         self.displaySignals = []

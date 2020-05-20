@@ -22,8 +22,8 @@ class Plot (QtGui.QWidget):
     layout.addWidget (self.qcp)
     self.qcp.setInteraction(1, True) # iRangeDrag
     self.qcp.setInteraction(2, True) # iRangeZoom
-    self.qcp.setAutoAddPlottableToLegend(True)
-    self.qcp.legend().setVisible(True)
+    self.qcp.autoAddPlottableToLegend = True
+    self.qcp.legend().visible = True
 
     self.timer = Qt.QTimer(self)
     self.timer.setSingleShot(False)
@@ -37,8 +37,9 @@ class Plot (QtGui.QWidget):
     self.times = []
     for i,s in enumerate(signals):
       graph = self.qcp.addGraph()
-      graph.setName(s[0] + '.' + s[1])
-      graph.setPen(pens[i])
+      print graph.__dict__.keys()
+      graph.name = s[0] + '.' + s[1]
+      graph.pen = pens[i]
     if len(signals) > 0:
       self.timer.start()
 
