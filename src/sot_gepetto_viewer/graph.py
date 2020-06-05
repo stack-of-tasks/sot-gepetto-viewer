@@ -13,7 +13,9 @@ class Graph:
         self.graph.connect(Qt.SIGNAL("nodeMouseRelease(QGVNode*)"), self.updateLayout)
         self.graph.connect(Qt.SIGNAL("nodeContextMenu(QGVNode*)" ), self._nodeContextMenu)
         self.graph.connect(Qt.SIGNAL("edgeContextMenu(QGVEdge*)" ), self._signalContextMenu)
-
+	self.graph.connect(Qt.SIGNAL("edgeContextMenu(QGVEdge*)" ), self._signalContextMenu)
+	
+	self.filter = "0"
         ### An object returned by re.compile
         self.entityFilter = None
         self.typeCallbacks = {
@@ -22,9 +24,9 @@ class Graph:
                 }
 
         self.initCmd()
-	
-	self.LaunchRefresh()
 
+	self.LaunchRefresh()
+	
 	#self.createAllGraph()
 
     def clear (self):
@@ -59,9 +61,9 @@ class Graph:
 
     def setEntityFilter (self, filter):
         self.entityFilter = filter
-        print self.entityFilter
+        #print self.entityFilter
 
-    def RefreshAuto(self):
+    def RefreshAuto(self, e):
 	print "test"
 	#QTimer.singleShot(1000, self.essaie)
 
@@ -90,27 +92,37 @@ class Graph:
         self.clear()
 	entities = eval(str_entities)
         for e in entities:
-            if self.entityFilter is not None and not self.entityFilter.search(e):
-                continue
-	    print "e" + e
-            etype = self.cmd.run("dg.entity.Entity.entities['"+e+"'].className")
-            self.types[e] = etype
-            if self.typeCallbacks.has_key(etype):
-                self.typeCallbacks[etype][0] (e)
-            else:
-                self._nodeEntity(e)
+	    if self.filter == "0" or self.filter in e:
+                if self.entityFilter is not None and not self.entityFilter.search(e):
+                    continue
+                etype = self.cmd.run("dg.entity.Entity.entities['"+e+"'].className")
+                self.types[e] = etype
+                if self.typeCallbacks.has_key(etype):
+                    self.typeCallbacks[etype][0] (e)
+                else:
+                    self._nodeEntity(e)
         for e in entities:
-            if self.entityFilter is not None and not self.entityFilter.search(e):
-                continue
-            etype = self.types[e]
-            if self.typeCallbacks.has_key(etype):
-                self.typeCallbacks[etype][1] (e)
-            else:
-                self._edgeEntitySignals (e)
+	    if self.filter == "0" or self.filter in e:
+                if self.entityFilter is not None and not self.entityFilter.search(e):
+                    continue
+                etype = self.types[e]
+	    #if self.filter == "0":
+                if self.typeCallbacks.has_key(etype):
+                    self.typeCallbacks[etype][1] (e)
+                else:
+                    self._edgeEntitySignals (e)
         self.initLayout()
 
-	#while 1:
-	#	self.updateLayout()
+    def getNodeInformation (self, e):
+	str_signals = self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]")
+	signals = eval(str_signals)
+	print (e)
+	for s in signals:
+            ss = s.split("::")
+            if len(ss) != 3:
+                print "Cannot handle", s
+            elif ss[1].startswith("in"):
+		print ss[2]
 
     def createGraphBackwardFromEntity (self, e):
         ok = self.cmd.run("dg.entity.Entity.entities.has_key('"+e+"')")
@@ -159,11 +171,12 @@ class Graph:
         for t,n in zip(tasks, nodes):
             if not self.nodes.has_key(t):
                 self._createGraphBackwardFromEntity(t)
-            e = self.graph.addEdge (self.nodes[t], n, "error")
-            # TODO errorTimeDerivative
-            n = "sot_" + s + "/task_" + t + "/error"
-            self.edges[n] = (t, e)
-            self.edgesBack[e] = n
+	    if self.filter == "0":
+            	e = self.graph.addEdge (self.nodes[t], n, "error")
+            	# TODO errorTimeDerivative
+            	n = "sot_" + s + "/task_" + t + "/error"
+            	self.edges[n] = (t, e)
+            	self.edgesBack[e] = n
 
     def _nodeEntityTask(self, t):
         self._nodeEntity(t)
@@ -174,18 +187,21 @@ class Graph:
         for f in features:
             if not self.nodes.has_key(f):
                 self._createGraphBackwardFromEntity(f)
-            edge = self.graph.addEdge (self.nodes[f], self.nodes[t])
-            # TODO set edge properties
-            edge.setAttribute("color", "red")
+	    if self.filter == "0" or (self.filter in f and self.filter in t):
+            	edge = self.graph.addEdge (self.nodes[f], self.nodes[t])
+            	# TODO set edge properties
+            	edge.setAttribute("color", "red")
         self._edgeEntitySignals (t)
         pass
 
     def _nodeEntity(self, e):
-        self.nodes[e] = self.graph.addNode (e)
+	if self.filter == "0" or self.filter in e:
+            self.nodes[e] = self.graph.addNode (e)
+
 
     def _edgeEntitySignals(self, e):
         str_signals = self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]")
-	signals = eval(str_signals)        
+	signals = eval(str_signals)
 	for s in signals:
             ss = s.split("::")
             if len(ss) != 3:
@@ -196,11 +212,11 @@ class Graph:
                 if other_s is not None and s != other_s:
                     idx = other_s.index('(')+1
                     other_e = other_s[idx:other_s.index(')',idx)]
-                    if not self.nodes.has_key(other_e):
-                        self._createGraphBackwardFromEntity(other_e)
-                    self.edges[s] = (e,
-                            self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))
-                    self.edgesBack[self.edges[s][1]] = s
+		    if self.filter == "0" or (self.filter in other_e and self.filter in e):	
+                        if not self.nodes.has_key(other_e):
+                            self._createGraphBackwardFromEntity(other_e)
+                    	self.edges[s] = (e, self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))		#les noms sont la (e et other_e)
+                    	self.edgesBack[self.edges[s][1]] = s
             elif ss[1].startswith("out"):
                 pass
             else:
@@ -212,6 +228,9 @@ class Graph:
             menu = QtGui.QMenu("Entity " + e, self.view)
             a = menu.addAction("Show graph backward")
             a.connect(Qt.SIGNAL("triggered()"), lambda: self.createGraphBackwardFromEntity(e))
+	    menu.popup(QtGui.QCursor.pos())
+	    b = menu.addAction("Test")
+            b.connect(Qt.SIGNAL("triggered()"), lambda: self.getNodeInformation(e))
             menu.popup(QtGui.QCursor.pos())
 
     def _signalContextMenu (self, edge):

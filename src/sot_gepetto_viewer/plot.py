@@ -37,7 +37,7 @@ class Plot (QtGui.QWidget):
     self.times = []
     for i,s in enumerate(signals):
       graph = self.qcp.addGraph()
-      print graph.__dict__.keys()
+      #print graph.__dict__.keys()
       graph.name = s[0] + '.' + s[1]
       graph.pen = pens[i]
     if len(signals) > 0:

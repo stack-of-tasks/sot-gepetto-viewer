@@ -30,6 +30,8 @@ class Plugin(QtGui.QDockWidget):
         toolBar.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
 	toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
+	toolBar.addAction(QtGui.QIcon.fromTheme("set-filter"), "Set graph Filter", self.setFilter)
+	toolBar.addSeparator()
         main.addToolBar (toolBar)
 
         self.displaySignals = []
@@ -40,7 +42,7 @@ class Plugin(QtGui.QDockWidget):
         from pinocchio import RobotWrapper, se3
         import os
         file = str(QtGui.QFileDialog.getOpenFileName(self, "Robot description file"))
-        print file
+        #print file
         # file = "/local/jmirabel/devel/openrobots/install/share/talos_data/robots/talos_reduced.urdf"
         self.robot = RobotWrapper (
                 filename = file,
@@ -54,12 +56,24 @@ class Plugin(QtGui.QDockWidget):
         q = self._sotToPin (q)
         self.robot.display(q)
 
+    def setFilter (self):
+        try:
+            ef = self.filter
+        except:
+            ef = ""
+        self.filter = Qt.QInputDialog.getText(self, "Entity filter", "Filter entity by name", Qt.QLineEdit.Normal, ef)
+        if len(self.filter) > 0:
+            self.graph.filter = self.filter
+        else:
+            self.graph.filter = "0"
+
     def entityFilterByName (self):
         try:
             ef = self.entityFilter
         except:
             ef = ""
         self.entityFilter = Qt.QInputDialog.getText(self, "Entity filter", "Filter entity by name", Qt.QLineEdit.Normal, ef)
+	#print self.entityFilter
         if len(self.entityFilter) > 0:
             import re
             efre = re.compile (self.entityFilter)
@@ -68,7 +82,7 @@ class Plugin(QtGui.QDockWidget):
             self.graph.setEntityFilter (None)
 
     def toggleDisplaySignalValue (self, entity, signal):
-        print "Toggle", entity, signal
+        #print "Toggle", entity, signal
         k = (entity, signal)
         try:
             idx = self.displaySignals.index(k)
