@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PythonQt import QtGui, Qt
 from graph import Graph
 from plot import Plot
@@ -11,14 +12,18 @@ class Plugin(QtGui.QDockWidget):
         self.main = main
         self.graph = Graph (self)
         self.plot = Plot (self)
+	self.allFilter = ""
 
         self.tabWidget = QtGui.QTabWidget(self)
         self.setWidget (self.tabWidget)
         self.tabWidget.addTab (self.graph.view, "SoT graph")
         self.tabWidget.addTab (self.plot, "Plot")
 
+        self.myQLineEdit = QtGui.QLineEdit("Type text here")
+        self.myQLineEdit.textChanged.connect(self.fixText)
+
         toolBar = QtGui.QToolBar ("SoT buttons")
-        toolBar.addAction(QtGui.QIcon.fromTheme("view-refresh"), "Create entire graph", self.graph.createAllGraph)
+        toolBar.addAction(QtGui.QIcon.fromTheme("view-refresh"), "Create entire graph", self.graph.createAllGraph2)
         toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("zoom-fit-best"), "Zoom fit best", self.plot.zoomFitBest)
         toolBar.addAction(QtGui.QIcon.fromTheme("media-playback-stop"), "Stop fetching data", self.stopAnimation)
@@ -26,23 +31,59 @@ class Plugin(QtGui.QDockWidget):
         toolBar.addAction(QtGui.QIcon.fromTheme("window-new"), "Create viewer", self.createRobotView)
         toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("view-filter"), "Set entity filter by name", self.entityFilterByName)
-	toolBar.addSeparator()
+        toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
-	toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
-	toolBar.addAction(QtGui.QIcon.fromTheme("set-filter"), "Set graph Filter", self.setFilter)
-	toolBar.addSeparator()
+        toolBar.addSeparator()
+        toolBar.addAction(QtGui.QIcon.fromTheme("add-filter"), "New Filter", self.addFilter)
+        toolBar.addAction(QtGui.QIcon.fromTheme("add-filter"), "Delete last Filter", self.rmvFilter)
+        toolBar.addSeparator()
+        toolBar.addWidget(self.myQLineEdit)
+        toolBar.addSeparator()
+        toolBar.addAction(QtGui.QIcon.fromTheme("Reset-filter"), "Reset Filter", self.ResetFilter)
         main.addToolBar (toolBar)
 
         self.displaySignals = []
         self.hookRegistered = False
         self.displaySignalValuesStarted = False
 
+    def addFilter (self):
+        block = 0
+        self.filter = self.myQLineEdit.text
+        for i in self.graph.filter :
+            if self.filter in i:
+                block = 1
+
+        if self.filter not in self.allFilter and block == 0:
+            if self.allFilter == "0":
+                self.allFilter = self.filter
+            else :
+	        self.allFilter = self.allFilter + " " + self.filter
+
+        #print (self.allFilter)
+
+        self.myQLineEdit.clear()
+        self.graph.UpdateFilter(self.allFilter)
+
+    def rmvFilter (self):
+        self.allFilter = self.allFilter.rsplit(' ', 1)[0]
+
+        if not self.allFilter:
+            self.allFilter = "0"
+
+        #print (self.allFilter)
+        self.graph.UpdateFilter(self.allFilter)
+
+    def ResetFilter (self):
+        self.allFilter = "0"
+        self.graph.UpdateFilter(self.allFilter)
+	
+
     def createRobotView (self):
         from pinocchio import RobotWrapper, se3
         import os
         file = str(QtGui.QFileDialog.getOpenFileName(self, "Robot description file"))
-        #print file
+        #print (file)
         # file = "/local/jmirabel/devel/openrobots/install/share/talos_data/robots/talos_reduced.urdf"
         self.robot = RobotWrapper (
                 filename = file,
@@ -73,7 +114,7 @@ class Plugin(QtGui.QDockWidget):
         except:
             ef = ""
         self.entityFilter = Qt.QInputDialog.getText(self, "Entity filter", "Filter entity by name", Qt.QLineEdit.Normal, ef)
-	#print self.entityFilter
+        #print (self.entityFilter)
         if len(self.entityFilter) > 0:
             import re
             efre = re.compile (self.entityFilter)
@@ -82,7 +123,7 @@ class Plugin(QtGui.QDockWidget):
             self.graph.setEntityFilter (None)
 
     def toggleDisplaySignalValue (self, entity, signal):
-        #print "Toggle", entity, signal
+        #print ("Toggle"+ entity+ signal)
         k = (entity, signal)
         try:
             idx = self.displaySignals.index(k)
@@ -132,3 +173,18 @@ class Plugin(QtGui.QDockWidget):
 
     def refreshInterface(self):
         self.graph.createAllGraph()
+
+    def fixText(self, arg):
+        arg=str(arg)
+        if not arg: return
+
+        arg=self.cleanupString(arg)
+
+    def cleanupString(self, line=None):
+        if line==None: return
+        invalid = invalid = ['!','"','#','$','%','&','\\','(',')','*','+',',','-','.','/'
+                    ,':',';','<','=','>','?','@','[',"'",']','^','`','{','|','}','~', ' ']
+        for c in invalid: 
+            if len(line)>0:
+                line=line.replace(c,'_')
+        return line
