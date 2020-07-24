@@ -2,6 +2,7 @@ from __future__ import print_function
 from PythonQt import QtGui, Qt
 from graph import Graph
 from plot import Plot
+from dynamic_graph import factory_get_entity_class_list
 
 hookRegistration = "from sot_gepetto_viewer.callback_after_robot_increment import CallbackRobotAfterIncrement"
 
@@ -20,10 +21,9 @@ class Plugin(QtGui.QDockWidget):
         self.tabWidget.addTab (self.plot, "Plot")
 
         self.myQLineEdit = QtGui.QLineEdit("Type text here")
-        self.myQLineEdit.textChanged.connect(self.fixText)
 
         toolBar = QtGui.QToolBar ("SoT buttons")
-        toolBar.addAction(QtGui.QIcon.fromTheme("view-refresh"), "Create entire graph", self.graph.createAllGraph2)
+        toolBar.addAction(QtGui.QIcon.fromTheme("view-refresh"), "Create entire graph", self.graph.createAllGraph)
         toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("zoom-fit-best"), "Zoom fit best", self.plot.zoomFitBest)
         toolBar.addAction(QtGui.QIcon.fromTheme("media-playback-stop"), "Stop fetching data", self.stopAnimation)
@@ -32,16 +32,19 @@ class Plugin(QtGui.QDockWidget):
         toolBar.addSeparator()
         toolBar.addAction(QtGui.QIcon.fromTheme("view-filter"), "Set entity filter by name", self.entityFilterByName)
         toolBar.addSeparator()
-        toolBar.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
-        toolBar.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
-        toolBar.addSeparator()
-        toolBar.addAction(QtGui.QIcon.fromTheme("add-filter"), "New Filter", self.addFilter)
-        toolBar.addAction(QtGui.QIcon.fromTheme("add-filter"), "Delete last Filter", self.rmvFilter)
-        toolBar.addSeparator()
-        toolBar.addWidget(self.myQLineEdit)
-        toolBar.addSeparator()
-        toolBar.addAction(QtGui.QIcon.fromTheme("Reset-filter"), "Reset Filter", self.ResetFilter)
         main.addToolBar (toolBar)
+        toolBar2 = QtGui.QToolBar ("SoT buttons")
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Get Entity List WIP"), "Get Entity List WIP", self.graph.getList)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
+        toolBar2.addSeparator()
+        toolBar2.addAction(QtGui.QIcon.fromTheme("add-filter"), "New Filter", self.addFilter)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("add-filter"), "Delete last Filter", self.rmvFilter)
+        toolBar2.addSeparator()
+        toolBar2.addWidget(self.myQLineEdit)
+        toolBar2.addSeparator()
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Reset-filter"), "Reset Filter", self.ResetFilter)
+        main.addToolBar (toolBar2)
 
         self.displaySignals = []
         self.hookRegistered = False
@@ -78,7 +81,6 @@ class Plugin(QtGui.QDockWidget):
         self.allFilter = "0"
         self.graph.UpdateFilter(self.allFilter)
 	
-
     def createRobotView (self):
         from pinocchio import RobotWrapper, se3
         import os
@@ -173,18 +175,3 @@ class Plugin(QtGui.QDockWidget):
 
     def refreshInterface(self):
         self.graph.createAllGraph()
-
-    def fixText(self, arg):
-        arg=str(arg)
-        if not arg: return
-
-        arg=self.cleanupString(arg)
-
-    def cleanupString(self, line=None):
-        if line==None: return
-        invalid = invalid = ['!','"','#','$','%','&','\\','(',')','*','+',',','-','.','/'
-                    ,':',';','<','=','>','?','@','[',"'",']','^','`','{','|','}','~', ' ']
-        for c in invalid: 
-            if len(line)>0:
-                line=line.replace(c,'_')
-        return line
