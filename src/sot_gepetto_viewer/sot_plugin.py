@@ -63,19 +63,16 @@ class Plugin(QtGui.QDockWidget):
             else :
 	        self.allFilter = self.allFilter + " " + self.filter
 
-        #print (self.allFilter)
-
         self.myQLineEdit.clear()
         self.graph.UpdateFilter(self.allFilter)
 
     def rmvFilter (self):
-        self.allFilter = self.allFilter.rsplit(' ', 1)[0]
+        self.newFilter = self.allFilter.rsplit(' ', 1)[0]
 
-        if not self.allFilter:
-            self.allFilter = "0"
+        if self.allFilter == self.newFilter:
+            self.newFilter = "0"
 
-        #print (self.allFilter)
-        self.graph.UpdateFilter(self.allFilter)
+        self.graph.UpdateFilter(self.newFilter)
 
     def ResetFilter (self):
         self.allFilter = "0"
@@ -116,7 +113,7 @@ class Plugin(QtGui.QDockWidget):
         except:
             ef = ""
         self.entityFilter = Qt.QInputDialog.getText(self, "Entity filter", "Filter entity by name", Qt.QLineEdit.Normal, ef)
-        #print (self.entityFilter)
+
         if len(self.entityFilter) > 0:
             import re
             efre = re.compile (self.entityFilter)
