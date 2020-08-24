@@ -5,8 +5,9 @@ from PythonQt.QtCore import QThreadPool, QRunnable
 from PythonQt import QtGui, Qt
 from PythonQt.QtGui import QMessageBox
 from command_execution import CommandExecution
-import re
-from dynamic_graph import factory_get_entity_class_list
+import dynamic_graph
+from dynamic_graph.sot.core.robot_simu import RobotSimu
+
 
 class Graph:
     def __init__(self, plugin):
@@ -78,7 +79,7 @@ class Graph:
 
     def getList (self):
         chaine = "\n"
-        liste = factory_get_entity_class_list()
+        liste = dynamic_graph.entity.Entity.entityClassNameList
         for i in liste:
             chaine += i + "\n"
 
@@ -89,6 +90,7 @@ class Graph:
 
     def createAllGraph (self):
         self.blocked =""
+        self.blocked2 =""
         again = 0
         str_entities = self.cmd.run ("dg.entity.Entity.entities.keys()")
         self.clear()
@@ -197,7 +199,7 @@ class Graph:
         for t,n in zip(tasks, nodes):
             if not self.nodes.has_key(t):
                 self._createGraphBackwardFromEntity(t)
-            for i in self.filter:           #ajout
+            for i in self.filter:
                 if i == "0":
             	    e = self.graph.addEdge (self.nodes[t], n, "error")
                     # TODO errorTimeDerivative
@@ -218,18 +220,20 @@ class Graph:
                 for i in self.filter:
                     if i == "0" or (i in f and j in t):
                         
-                        if f not in self.blocked:
-            	            edge = self.graph.addEdge (self.nodes[f], self.nodes[t])            # f start / t end
+                        if f not in self.blocked2:
+            	            edge = self.graph.addEdge (self.nodes[f], self.nodes[t])
                             # TODO set edge properties
                             edge.setAttribute("color", "red")
-                            self.blocked = self.blocked + f + " "
+                            self.blocked2 = self.blocked2 + f + " "
         self._edgeEntitySignals (t)
         pass
 
     def _nodeEntity(self, e):
         for i in self.filter:
             if i == "0" or i in e:
-                self.nodes[e] = self.graph.addNode (e)
+                if e not in self.blocked:
+                    self.nodes[e] = self.graph.addNode (e)
+                    self.blocked = self.blocked + e + " "
 
     def _edgeEntitySignals(self, e):
 
@@ -254,7 +258,7 @@ class Graph:
                                 else:
                                     if not self.nodes.has_key(other_e):
                                         self._createGraphBackwardFromEntity(other_e)
-                                    self.edges[s] = (e, self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))              # e end  //  other_e start
+                                    self.edges[s] = (e, self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))
                                     self.edgesBack[self.edges[s][1]] = s                                     
                                 again += 1
                 elif ss[1].startswith("out"):

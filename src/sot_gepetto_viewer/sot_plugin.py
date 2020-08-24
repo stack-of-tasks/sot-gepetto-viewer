@@ -2,7 +2,6 @@ from __future__ import print_function
 from PythonQt import QtGui, Qt
 from graph import Graph
 from plot import Plot
-from dynamic_graph import factory_get_entity_class_list
 
 hookRegistration = "from sot_gepetto_viewer.callback_after_robot_increment import CallbackRobotAfterIncrement"
 
@@ -34,7 +33,7 @@ class Plugin(QtGui.QDockWidget):
         toolBar.addSeparator()
         main.addToolBar (toolBar)
         toolBar2 = QtGui.QToolBar ("SoT buttons")
-        toolBar2.addAction(QtGui.QIcon.fromTheme("Get Entity List WIP"), "Get Entity List WIP", self.graph.getList)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Get Entity List"), "Get Entity List", self.graph.getList)
         toolBar2.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
         toolBar2.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
         toolBar2.addSeparator()
