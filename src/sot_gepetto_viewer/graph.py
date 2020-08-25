@@ -5,8 +5,6 @@ from PythonQt.QtCore import QThreadPool, QRunnable
 from PythonQt import QtGui, Qt
 from PythonQt.QtGui import QMessageBox
 from command_execution import CommandExecution
-import dynamic_graph
-from dynamic_graph.sot.core.robot_simu import RobotSimu
 
 
 class Graph:
@@ -74,66 +72,66 @@ class Graph:
         self.timer.connect(self.timer, QtCore.SIGNAL("timeout()"), self.createAllGraph)
         self.timer.start(1000)
     
-    def UpdateFilter (self, Filt):
-        self.filter = Filt.split()
+    def UpdateFilter (self, filt):
+        self.filter = filt.split()
 
     def getList (self):
+        import dynamic_graph
+        from dynamic_graph.sot.core.robot_simu import RobotSimu
+
         chaine = "\n"
         liste = dynamic_graph.entity.Entity.entityClassNameList
         for i in liste:
             chaine += i + "\n"
-
-        QMessageBox.information(None, "Entities",chaine,
+        
+        # Show the list of entities used with QMessageBox
+        QMessageBox.information(None, "Entity list",chaine,
                         QMessageBox.Ok,
                         QMessageBox.Ok)
 
 
     def createAllGraph (self):
-        self.blocked =""
-        self.blocked2 =""
+        self.EntityBlocked =""                 #Block the creation of any duplicate for entities or signals
+        self.SignalBlocked =""
         again = 0
-        str_entities = self.cmd.run ("dg.entity.Entity.entities.keys()")
+        entities = eval(self.cmd.run ("dg.entity.Entity.entities.keys()"))
         self.clear()
-        entities = eval(str_entities)
+
         ent_list = entities
         for e in ent_list:
             for i in self.filter:
-                if i == "0" or i in e:
-                    if again != 0:
-                        pass
-                    else:
-                        if self.entityFilter is not None and not self.entityFilter.search(e):
-                            continue
-                        etype = self.cmd.run("dg.entity.Entity.entities['"+e+"'].className")
-                        self.types[e] = etype
-                        if self.typeCallbacks.has_key(etype):
-                            self.typeCallbacks[etype][0] (e)
-                        else:
-                            self._nodeEntity(e)
-                        again += 1
-            again = 0
+                if i != "0" and i not in e:
+                    continue
+                if self.entityFilter is not None and not self.entityFilter.search(e):
+                    continue
+                etype = self.cmd.run("dg.entity.Entity.entities['"+e+"'].className")
+                self.types[e] = etype
+                if self.typeCallbacks.has_key(etype):
+                    self.typeCallbacks[etype][0] (e)
+                else:
+                    self._nodeEntity(e)
+                break
+
 
         ent_list = entities
         for e in ent_list:
             for j in self.filter:
-                if j == "0" or j in e:
-                    if again != 0:
-                        pass
-                    else:
-                        if self.entityFilter is not None and not self.entityFilter.search(e):
-                            continue
-                        etype = self.types[e]
-                        if self.typeCallbacks.has_key(etype):
-                            self.typeCallbacks[etype][1] (e)
-                        else:
-                            self._edgeEntitySignals (e)
-                        again += 1
-            again = 0
+                if j != "0" and j not in e:
+                    continue
+                if self.entityFilter is not None and not self.entityFilter.search(e):
+                    continue
+                etype = self.cmd.run("dg.entity.Entity.entities['"+e+"'].className")
+                self.types[e] = etype
+                if self.typeCallbacks.has_key(etype):
+                    self.typeCallbacks[etype][1] (e)
+                else:
+                    self._edgeEntitySignals(e)
+                break
+
         self.initLayout()
 
     def getNodeInformation (self, e):
-        str_signals = self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]")
-        signals = eval(str_signals)
+        signals = eval(self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]"))
         chaine = "\n"
         for s in signals:
             ss = s.split("::")
@@ -199,13 +197,12 @@ class Graph:
         for t,n in zip(tasks, nodes):
             if not self.nodes.has_key(t):
                 self._createGraphBackwardFromEntity(t)
-            for i in self.filter:
-                if i == "0":
-            	    e = self.graph.addEdge (self.nodes[t], n, "error")
-                    # TODO errorTimeDerivative
-                    n = "sot_" + s + "/task_" + t + "/error"
-                    self.edges[n] = (t, e)
-                    self.edgesBack[e] = n
+            if "0" in self.filter:
+                e = self.graph.addEdge (self.nodes[t], n, "error")
+                # TODO errorTimeDerivative
+                n = "sot_" + s + "/task_" + t + "/error"
+                self.edges[n] = (t, e)
+                self.edgesBack[e] = n
 
     def _nodeEntityTask(self, t):
         self._nodeEntity(t)
@@ -220,20 +217,20 @@ class Graph:
                 for i in self.filter:
                     if i == "0" or (i in f and j in t):
                         
-                        if f not in self.blocked2:
+                        if f not in self.SignalBlocked:
             	            edge = self.graph.addEdge (self.nodes[f], self.nodes[t])
                             # TODO set edge properties
                             edge.setAttribute("color", "red")
-                            self.blocked2 = self.blocked2 + f + " "
+                            self.SignalBlocked = self.SignalBlocked + f + " "
         self._edgeEntitySignals (t)
         pass
 
     def _nodeEntity(self, e):
         for i in self.filter:
             if i == "0" or i in e:
-                if e not in self.blocked:
+                if e not in self.EntityBlocked:
                     self.nodes[e] = self.graph.addNode (e)
-                    self.blocked = self.blocked + e + " "
+                    self.EntityBlocked = self.EntityBlocked + e + " "
 
     def _edgeEntitySignals(self, e):
 
@@ -263,8 +260,7 @@ class Graph:
                                 again += 1
                 elif ss[1].startswith("out"):
                     pass
-                else:
-                    print ("unknown"+ s)
+
             again = 0
 
 

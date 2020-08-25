@@ -52,6 +52,8 @@ You will need to add these lines because corba doesn't automaticly detect gepett
 
 gepetto-viewer-corba is now installed.
 
+Important! Make sure the global variable CMAKE_PREFIX_PATH contain the path to pythonqt and qgv, both normal path should be /opt/openrobots
+
 Installing sot-gepetto-viewer:
  1. clone the repository on your computer : git clone --recursive https://github.com/AlexKuen/sot-gepetto-viewer
  2. create of folder name _build in the folder gepetto-viewer
