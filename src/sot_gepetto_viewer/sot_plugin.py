@@ -52,9 +52,8 @@ class Plugin(QtGui.QDockWidget):
     def addFilter (self):
         block = False
         self.filter = self.myQLineEdit.text
-        for i in self.graph.filter :
-            if self.filter in i:
-                block = True
+
+        block = any( (self.filter in i for i in self.graph.filter) )
 
         if not block and self.filter not in self.allFilter:
             if self.allFilter == "0":
