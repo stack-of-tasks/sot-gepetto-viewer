@@ -90,7 +90,6 @@ class Graph:
     def createAllGraph (self):
         self.EntityBlocked =""                 #Block the creation of any duplicate for entities or signals
         self.SignalBlocked =""
-        again = 0
         entities = eval(self.cmd.run ("dg.entity.Entity.entities.keys()"))
         self.clear()
 
