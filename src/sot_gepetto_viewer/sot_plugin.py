@@ -56,7 +56,7 @@ class Plugin(QtGui.QDockWidget):
             if self.filter in i:
                 block = 1
 
-        if self.filter not in self.allFilter and block == 0:
+        if not block and self.filter not in self.allFilter:
             if self.allFilter == "0":
                 self.allFilter = self.filter
             else :
