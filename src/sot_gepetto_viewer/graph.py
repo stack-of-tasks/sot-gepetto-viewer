@@ -79,10 +79,7 @@ class Graph:
         import dynamic_graph
         from dynamic_graph.sot.core.robot_simu import RobotSimu
 
-        chaine = "\n"
-        liste = dynamic_graph.entity.Entity.entityClassNameList
-        for i in liste:
-            chaine += i + "\n"
+        chaine = "\n".join(dynamic_graph.entity.Entity.entityClassNameList)
         
         # Show the list of entities used with QMessageBox
         QMessageBox.information(None, "Entity list",chaine,
