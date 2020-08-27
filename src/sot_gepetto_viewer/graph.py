@@ -27,7 +27,7 @@ class Graph:
                 }
 
         self.initCmd()
-        self.LaunchRefresh()
+        self.launchRefresh()
 
     def clear (self):
         if self.layoutShouldBeFreed:
@@ -62,17 +62,17 @@ class Graph:
     def setEntityFilter (self, filter):
         self.entityFilter = filter
 
-    def StopRefresh(self):
+    def stopRefresh(self):
         self.timer.stop()
         print ("Auto Refresh Stopped")
 
-    def LaunchRefresh(self):
+    def launchRefresh(self):
         print ("Auto Refreshed Launched")
         self.timer = QtCore.QTimer()
         self.timer.connect(self.timer, QtCore.SIGNAL("timeout()"), self.createAllGraph)
         self.timer.start(1000)
     
-    def UpdateFilter (self, filt):
+    def updateFilter (self, filt):
         self.filter = filt.split()
 
     def getList (self):
@@ -211,10 +211,9 @@ class Graph:
                 self._createGraphBackwardFromEntity(f)
             for j in self.filter:
                 for i in self.filter:
-                    if i == "0" or (i in f and j in t):
-                        
+                    if i == "0" or (i in f and j in t):   
                         if f not in self.SignalBlocked:
-            	            edge = self.graph.addEdge (self.nodes[f], self.nodes[t])
+                            edge = self.graph.addEdge (self.nodes[f], self.nodes[t])
                             # TODO set edge properties
                             edge.setAttribute("color", "red")
                             self.SignalBlocked = self.SignalBlocked + f + " "
@@ -254,9 +253,6 @@ class Graph:
                                     self.edges[s] = (e, self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))
                                     self.edgesBack[self.edges[s][1]] = s                                     
                                 again += 1
-                elif ss[1].startswith("out"):
-                    pass
-
             again = 0
 
 

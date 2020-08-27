@@ -12,7 +12,7 @@ class Plugin(QtGui.QDockWidget):
         self.main = main
         self.graph = Graph (self)
         self.plot = Plot (self)
-	self.allFilter = ""
+        self.allFilter = ""
 
         self.tabWidget = QtGui.QTabWidget(self)
         self.setWidget (self.tabWidget)
@@ -34,8 +34,8 @@ class Plugin(QtGui.QDockWidget):
         main.addToolBar (toolBar)
         toolBar2 = QtGui.QToolBar ("SoT buttons")
         toolBar2.addAction(QtGui.QIcon.fromTheme("Get Entity List"), "Get Entity List", self.graph.getList)
-        toolBar2.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.StopRefresh)
-        toolBar2.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.LaunchRefresh)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Stop"), "Stop", self.graph.stopRefresh)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Launch"), "Launch", self.graph.launchRefresh)
         toolBar2.addSeparator()
         toolBar2.addAction(QtGui.QIcon.fromTheme("add-filter"), "New Filter", self.addFilter)
         toolBar2.addAction(QtGui.QIcon.fromTheme("add-filter"), "Delete last Filter", self.rmvFilter)
@@ -50,20 +50,20 @@ class Plugin(QtGui.QDockWidget):
         self.displaySignalValuesStarted = False
 
     def addFilter (self):
-        block = 0
+        block = False
         self.filter = self.myQLineEdit.text
         for i in self.graph.filter :
             if self.filter in i:
-                block = 1
+                block = True
 
         if not block and self.filter not in self.allFilter:
             if self.allFilter == "0":
                 self.allFilter = self.filter
             else :
-	        self.allFilter = self.allFilter + " " + self.filter
+                self.allFilter = self.allFilter + " " + self.filter
 
         self.myQLineEdit.clear()
-        self.graph.UpdateFilter(self.allFilter)
+        self.graph.updateFilter(self.allFilter)
 
     def rmvFilter (self):
         self.newFilter = self.allFilter.rsplit(' ', 1)[0]
@@ -71,11 +71,11 @@ class Plugin(QtGui.QDockWidget):
         if self.allFilter == self.newFilter:
             self.newFilter = "0"
 
-        self.graph.UpdateFilter(self.newFilter)
+        self.graph.updateFilter(self.newFilter)
 
     def ResetFilter (self):
         self.allFilter = "0"
-        self.graph.UpdateFilter(self.allFilter)
+        self.graph.updateFilter(self.allFilter)
 	
     def createRobotView (self):
         from pinocchio import RobotWrapper, se3
