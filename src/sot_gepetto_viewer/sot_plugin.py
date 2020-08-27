@@ -42,7 +42,7 @@ class Plugin(QtGui.QDockWidget):
         toolBar2.addSeparator()
         toolBar2.addWidget(self.myQLineEdit)
         toolBar2.addSeparator()
-        toolBar2.addAction(QtGui.QIcon.fromTheme("Reset-filter"), "Reset Filter", self.ResetFilter)
+        toolBar2.addAction(QtGui.QIcon.fromTheme("Reset-filter"), "Reset Filter", self.resetFilter)
         main.addToolBar (toolBar2)
 
         self.displaySignals = []
@@ -72,7 +72,7 @@ class Plugin(QtGui.QDockWidget):
 
         self.graph.updateFilter(self.newFilter)
 
-    def ResetFilter (self):
+    def resetFilter (self):
         self.allFilter = "0"
         self.graph.updateFilter(self.allFilter)
 	
