@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PythonQt import QtGui, Qt
 from PythonQt.QCustomPlot import QCustomPlot
 
@@ -22,8 +23,8 @@ class Plot (QtGui.QWidget):
     layout.addWidget (self.qcp)
     self.qcp.setInteraction(1, True) # iRangeDrag
     self.qcp.setInteraction(2, True) # iRangeZoom
-    self.qcp.setAutoAddPlottableToLegend(True)
-    self.qcp.legend().setVisible(True)
+    self.qcp.autoAddPlottableToLegend = True
+    self.qcp.legend().visible = True
 
     self.timer = Qt.QTimer(self)
     self.timer.setSingleShot(False)
@@ -37,17 +38,18 @@ class Plot (QtGui.QWidget):
     self.times = []
     for i,s in enumerate(signals):
       graph = self.qcp.addGraph()
-      graph.setName(s[0] + '.' + s[1])
-      graph.setPen(pens[i])
+      #print (graph.__dict__.keys())
+      graph.name = s[0] + '.' + s[1]
+      graph.pen = pens[i]
     if len(signals) > 0:
       self.timer.start()
 
   def stopAnimation (self):
-    print "Stop animation"
+    print ("Stop animation")
     self.timer.stop()
 
   def _step(self):
-    # print "step", frame
+    # print ("step"+ frame)
     nys = self.plugin._fetchNewSignalValues ()
     if nys is not None and len(nys) == len(self.signals):
       if len(nys) > 0:
@@ -55,14 +57,14 @@ class Plot (QtGui.QWidget):
         # l = len(nys[0][1])
         if l > 0:
           # ntimes = [ ny[0] for ny in nys
-          # print nys
+          # print (nys)
           # start = (self.times[-1] if len(self.times) > 0 else 0) + 1
           # ntimes = range(start,start+l)
           # self.times.extend(ntimes)
           for i,ny in enumerate(nys):
             nnt = [ n[0]    for n in ny ]
             nny = [ n[1][0] for n in ny ]
-            # print ntimes,nny
+            # print (ntimes + nny)
             self.qcp.addData(i,nnt,nny)
 
           # self.qcp.xAxis_setRange(0, self.times[-1])

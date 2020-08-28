@@ -30,9 +30,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import print_function
 import sys
 import rospy
-
 import dynamic_graph_bridge_msgs.srv
 
 class CommandExecution(object):
@@ -82,8 +82,7 @@ class CommandExecution(object):
                 print(response.standarderror[:-1])
             elif response.result != "None":
                 if not retValue: return
-                res = eval(response.result)
-                # print(response.result)
+                res = response.result
                 return res
         except rospy.ServiceException, e:
             print("Connection to remote server lost. Reconnecting...")

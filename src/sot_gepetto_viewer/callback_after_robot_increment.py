@@ -1,6 +1,8 @@
+from __future__ import print_function
 import dynamic_graph as dg
 from collections import deque
 from threading import Lock
+
 
 class CallbackRobotAfterIncrement(object):
   def __init__(self):
@@ -48,7 +50,7 @@ class CallbackRobotAfterIncrement(object):
         # print "One period late:", s.name, s.time
         b.append((s.time,s.value))
       else:
-        print "Too late:", s.name, s.time, time
+        print ("Too late:" + s.name + s.time + time)
         # b.append(None)
     self.mutex.release()
   def watchSignal(self,entity,signal):
