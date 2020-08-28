@@ -228,10 +228,10 @@ class Graph:
 
     def _edgeEntitySignals(self, e):
 
-        again = 0
         str_signals = self.cmd.run("[ s.name for s in dg.entity.Entity.entities['"+e+"'].signals() ]")
         signals = eval(str_signals)
         for s in signals:
+            again = False
             ss = s.split("::")
             if len(ss) != 3:
                 print ("Cannot handle"+ s)
@@ -243,17 +243,13 @@ class Graph:
                     other_e = other_s[idx:other_s.index(')',idx)]
                     for i in self.filter:
                         for j in self.filter:
-                            if i == "0" or (i in other_e and j in e and e != other_e):
-                                if again != 0:
-                                    pass
-                                else:
-                                    if not self.nodes.has_key(other_e):
-                                        self._createGraphBackwardFromEntity(other_e)
-                                    self.edges[s] = (e, self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))
-                                    self.edgesBack[self.edges[s][1]] = s                                     
-                                again += 1
-            again = 0
-
+                            if (i != "0" and (i not in other_e or j not in e or e == other_e)) or again == True:
+                                continue
+                            if not self.nodes.has_key(other_e):
+                                self._createGraphBackwardFromEntity(other_e)
+                            self.edges[s] = (e, self.graph.addEdge (self.nodes[other_e], self.nodes[e], ss[2]))
+                            self.edgesBack[self.edges[s][1]] = s
+                            again = True
 
     def _nodeContextMenu (self, node):
         e = node.getAttribute("label")
